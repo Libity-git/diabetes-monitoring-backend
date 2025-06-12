@@ -20,8 +20,11 @@ CREATE TABLE `Report` (
     `mealTime` VARCHAR(191) NOT NULL,
     `systolic` INTEGER NOT NULL,
     `diastolic` INTEGER NOT NULL,
+    `pulse` INTEGER NULL,
     `recordedAt` DATETIME(3) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `bloodSugarStatus` VARCHAR(191) NULL,
+    `systolicStatus` VARCHAR(191) NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -31,6 +34,7 @@ CREATE TABLE `Admin` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `username` VARCHAR(191) NOT NULL,
     `passwordHash` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `Admin_username_key`(`username`),
     PRIMARY KEY (`id`)

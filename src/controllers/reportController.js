@@ -4,12 +4,27 @@ const { startOfDay, endOfDay, parseISO } = require('date-fns');
 
 exports.getHighSugarAndHighPressureReports = async (req, res) => {
   try {
-    const date = req.query.date ? parseISO(req.query.date) : new Date();
-    if (isNaN(date)) {
-      return res.status(400).json({ error: 'วันที่ไม่ถูกต้อง' });
+    const { startDate, endDate } = req.query;
+    let dayStart, dayEnd;
+
+    // ตรวจสอบและกำหนดช่วงวันที่
+    if (startDate && endDate) {
+      const parsedStart = parseISO(startDate);
+      const parsedEnd = parseISO(endDate);
+      if (isNaN(parsedStart) || isNaN(parsedEnd)) {
+        return res.status(400).json({ error: 'วันที่เริ่มต้นหรือวันที่สิ้นสุดไม่ถูกต้อง' });
+      }
+      if (parsedStart > parsedEnd) {
+        return res.status(400).json({ error: 'วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด' });
+      }
+      dayStart = startOfDay(parsedStart);
+      dayEnd = endOfDay(parsedEnd);
+    } else {
+      // ถ้าไม่ระบุช่วงวันที่ ใช้วันที่ปัจจุบัน (ตามเวลาของระบบ 07/06/2025 14:40)
+      const currentDate = new Date();
+      dayStart = startOfDay(currentDate);
+      dayEnd = endOfDay(currentDate);
     }
-    const dayStart = startOfDay(date);
-    const dayEnd = endOfDay(date);
 
     const highSugarAndPressureReports = await prisma.report.findMany({
       where: {
@@ -32,19 +47,34 @@ exports.getHighSugarAndHighPressureReports = async (req, res) => {
 
     res.json(highSugarAndPressureReports);
   } catch (err) {
-    console.error(err);
+    console.error('Error in getHighSugarAndHighPressureReports:', err);
     res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลได้' });
   }
 };
 
 exports.getSummaryStats = async (req, res) => {
   try {
-    const date = req.query.date ? parseISO(req.query.date) : new Date();
-    if (isNaN(date)) {
-      return res.status(400).json({ error: 'วันที่ไม่ถูกต้อง' });
+    const { startDate, endDate } = req.query;
+    let dayStart, dayEnd;
+
+    // ตรวจสอบและกำหนดช่วงวันที่
+    if (startDate && endDate) {
+      const parsedStart = parseISO(startDate);
+      const parsedEnd = parseISO(endDate);
+      if (isNaN(parsedStart) || isNaN(parsedEnd)) {
+        return res.status(400).json({ error: 'วันที่เริ่มต้นหรือวันที่สิ้นสุดไม่ถูกต้อง' });
+      }
+      if (parsedStart > parsedEnd) {
+        return res.status(400).json({ error: 'วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด' });
+      }
+      dayStart = startOfDay(parsedStart);
+      dayEnd = endOfDay(parsedEnd);
+    } else {
+      // ถ้าไม่ระบุช่วงวันที่ ใช้วันที่ปัจจุบัน
+      const currentDate = new Date();
+      dayStart = startOfDay(currentDate);
+      dayEnd = endOfDay(currentDate);
     }
-    const dayStart = startOfDay(date);
-    const dayEnd = endOfDay(date);
 
     const highSugar = await prisma.report.count({
       where: {
@@ -103,19 +133,34 @@ exports.getSummaryStats = async (req, res) => {
       totalReportsToday: totalReportsToday,
     });
   } catch (err) {
-    console.error(err);
+    console.error('Error in getSummaryStats:', err);
     res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลได้' });
   }
 };
 
 exports.getAllReports = async (req, res) => {
   try {
-    const date = req.query.date ? parseISO(req.query.date) : new Date();
-    if (isNaN(date)) {
-      return res.status(400).json({ error: 'วันที่ไม่ถูกต้อง' });
+    const { startDate, endDate } = req.query;
+    let dayStart, dayEnd;
+
+    // ตรวจสอบและกำหนดช่วงวันที่
+    if (startDate && endDate) {
+      const parsedStart = parseISO(startDate);
+      const parsedEnd = parseISO(endDate);
+      if (isNaN(parsedStart) || isNaN(parsedEnd)) {
+        return res.status(400).json({ error: 'วันที่เริ่มต้นหรือวันที่สิ้นสุดไม่ถูกต้อง' });
+      }
+      if (parsedStart > parsedEnd) {
+        return res.status(400).json({ error: 'วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด' });
+      }
+      dayStart = startOfDay(parsedStart);
+      dayEnd = endOfDay(parsedEnd);
+    } else {
+      // ถ้าไม่ระบุช่วงวันที่ ใช้วันที่ปัจจุบัน
+      const currentDate = new Date();
+      dayStart = startOfDay(currentDate);
+      dayEnd = endOfDay(currentDate);
     }
-    const dayStart = startOfDay(date);
-    const dayEnd = endOfDay(date);
 
     const allReports = await prisma.report.findMany({
       where: {
@@ -134,7 +179,7 @@ exports.getAllReports = async (req, res) => {
 
     res.json(allReports);
   } catch (err) {
-    console.error(err);
+    console.error('Error in getAllReports:', err);
     res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลได้' });
   }
 };
