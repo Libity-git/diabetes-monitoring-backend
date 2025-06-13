@@ -87,7 +87,7 @@ const sugarResultFlex = (name, value, status, advice) => ({
       paddingAll: "lg",
       backgroundColor: "#F5F5F5",
     },
-    footer: {
+/*     footer: {
       type: "box",
       layout: "vertical",
       contents: [
@@ -104,7 +104,7 @@ const sugarResultFlex = (name, value, status, advice) => ({
         },
       ],
       paddingAll: "md",
-    },
+    }, */
   },
 });
 
@@ -202,7 +202,7 @@ const bloodPressureFlex = (name, systolic, diastolic, pulse, status, advice) => 
       paddingAll: "lg",
       backgroundColor: "#F5F5F5",
     },
-    footer: {
+/*     footer: {
       type: "box",
       layout: "vertical",
       contents: [
@@ -219,7 +219,7 @@ const bloodPressureFlex = (name, systolic, diastolic, pulse, status, advice) => 
         },
       ],
       paddingAll: "md",
-    },
+    }, */
   },
 });
 
@@ -353,7 +353,7 @@ const combinedResultFlex = (name, sugarValue, sugarStatus, sugarAdvice, systolic
       paddingAll: "lg",
       backgroundColor: "#F5F5F5",
     },
-    footer: {
+/*     footer: {
       type: "box",
       layout: "vertical",
       contents: [
@@ -370,7 +370,7 @@ const combinedResultFlex = (name, sugarValue, sugarStatus, sugarAdvice, systolic
         },
       ],
       paddingAll: "md",
-    },
+    }, */
   },
 });
 
@@ -481,7 +481,7 @@ const pushRegisterFlex = (userId) => {
         paddingAll: "lg",
         backgroundColor: "#F5F5F5",
       },
-      footer: {
+/*       footer: {
         type: "box",
         layout: "vertical",
         spacing: "sm",
@@ -499,7 +499,7 @@ const pushRegisterFlex = (userId) => {
           },
         ],
         paddingAll: "md",
-      },
+      }, */
     },
   };
 
