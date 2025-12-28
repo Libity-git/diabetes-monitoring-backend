@@ -47,8 +47,8 @@ exports.registerPatient = async (req, res) => {
       return res.status(400).json({ error: 'LINE account นี้ลงทะเบียนแล้ว' });
     }
 
-    // Check if phone already exists
-    const existingPhone = await prisma.patient.findUnique({
+    // Check if phone already exists (use findFirst since phone is not unique)
+    const existingPhone = await prisma.patient.findFirst({
       where: { phone }
     });
 
