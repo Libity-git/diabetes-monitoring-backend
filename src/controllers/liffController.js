@@ -83,7 +83,16 @@ exports.registerPatient = async (req, res) => {
 // ส่งรายงานจาก LIFF
 exports.submitReport = async (req, res) => {
   try {
-    const { lineUserId, bloodSugar, systolic, diastolic } = req.body;
+    const { 
+      lineUserId, 
+      bloodSugar, 
+      mealTime, 
+      systolic, 
+      diastolic, 
+      pulse,
+      bloodSugarStatus,
+      systolicStatus 
+    } = req.body;
 
     // Find patient by LINE user ID
     const patient = await prisma.patient.findUnique({
@@ -99,23 +108,42 @@ exports.submitReport = async (req, res) => {
       return res.status(400).json({ error: 'กรุณากรอกค่าน้ำตาลหรือความดัน' });
     }
 
-    // Create report
+    // Create report with all fields
     const report = await prisma.report.create({
       data: {
         patientId: patient.id,
         bloodSugar: bloodSugar ? parseFloat(bloodSugar) : null,
+        mealTime: mealTime || null,
         systolic: systolic ? parseInt(systolic) : null,
         diastolic: diastolic ? parseInt(diastolic) : null,
+        pulse: pulse ? parseInt(pulse) : null,
+        bloodSugarStatus: bloodSugarStatus || null,
+        systolicStatus: systolicStatus || null,
       }
     });
 
     // Check for high values and create notification
     let status = 'ปกติ';
-    if (bloodSugar && parseFloat(bloodSugar) > 126) {
+    const { createNotification } = require('./notificationController');
+    
+    if (bloodSugarStatus === 'เสี่ยงสูง' || bloodSugarStatus === 'สูง') {
       status = 'น้ำตาลสูง';
+      await createNotification(
+        'high_sugar',
+        'แจ้งเตือน: น้ำตาลสูง',
+        `${patient.name} มีค่าน้ำตาล ${bloodSugar} mg/dL (${bloodSugarStatus})`,
+        patient.id
+      );
     }
-    if (systolic && parseInt(systolic) > 140) {
+    
+    if (systolicStatus === 'เสี่ยงสูง' || systolicStatus === 'สูง') {
       status = status === 'ปกติ' ? 'ความดันสูง' : status + ' และความดันสูง';
+      await createNotification(
+        'high_pressure',
+        'แจ้งเตือน: ความดันสูง',
+        `${patient.name} มีค่าความดัน ${systolic}/${diastolic} mmHg (${systolicStatus})`,
+        patient.id
+      );
     }
 
     res.status(201).json({
@@ -124,8 +152,11 @@ exports.submitReport = async (req, res) => {
       report: {
         id: report.id,
         bloodSugar: report.bloodSugar,
+        mealTime: report.mealTime,
         systolic: report.systolic,
         diastolic: report.diastolic,
+        bloodSugarStatus: report.bloodSugarStatus,
+        systolicStatus: report.systolicStatus,
       }
     });
   } catch (error) {
