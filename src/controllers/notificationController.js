@@ -1,5 +1,5 @@
 // 📁 src/controllers/notificationController.js
-const prisma = require('../config/prisma');
+const prisma = require('../utils/prisma');
 
 // Get all notifications (with pagination)
 exports.getNotifications = async (req, res) => {
