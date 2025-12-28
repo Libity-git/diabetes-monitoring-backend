@@ -29,15 +29,15 @@ model Report {
   id          Int       @id @default(autoincrement())
   patient     Patient   @relation(fields: [patientId], references: [id])
   patientId   Int
-  bloodSugar  Int
-  mealTime    String     // เช่น 'before' หรือ 'after'
-  systolic    Int
-  diastolic   Int
+  bloodSugar  Float?    // nullable เพราะอาจส่งแค่ความดัน
+  mealTime    String?   // เช่น 'before' หรือ 'after'
+  systolic    Int?      // nullable เพราะอาจส่งแค่น้ำตาล
+  diastolic   Int?
   pulse       Int?
-  recordedAt  DateTime
-  createdAt   DateTime   @default(now())
-  bloodSugarStatus String?  // เพิ่ม: "HIGH", "LOW", "NORMAL"
-  systolicStatus   String?  // เพิ่ม: "HIGH", "LOW", "NORMAL"
+  recordedAt  DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  bloodSugarStatus String?
+  systolicStatus   String?
 }
 
 model Admin {
