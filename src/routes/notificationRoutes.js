@@ -8,10 +8,10 @@ const {
   markAllAsRead,
   deleteNotification,
 } = require('../controllers/notificationController');
-const authMiddleware = require('../middleware/authMiddleware');
+const verifyToken = require('../middlewares/verifyToken');
 
 // All routes require authentication
-router.use(authMiddleware);
+router.use(verifyToken);
 
 // GET /api/notifications - Get all notifications
 router.get('/', getNotifications);
