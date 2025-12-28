@@ -7,6 +7,7 @@ const {
   pushRegisterSuccessCard,
   replyMessage,
 } = require('../utils/lineMessaging');
+const { createNotification } = require('./notificationController');
 
 // ฟังก์ชันช่วยเหลือ (แสดงคำสั่งที่ใช้งานได้)
 const sendHelpMessage = async (replyToken) => {
@@ -182,10 +183,19 @@ exports.handleWebhook = async (req, res) => {
               text: `สวัสดีคุณ ${existing.name} ค่ะ คุณสมัครไว้แล้วนะคะ 😊`,
             });
           } else {
-            await prisma.patient.create({
+            const newPatient = await prisma.patient.create({
               data: { name, gender, age, phone, lineUserId },
             });
             await pushRegisterSuccessCard(lineUserId, name);
+            
+            // 🔔 สร้าง notification สำหรับผู้ป่วยใหม่
+            await createNotification(
+              'new_patient',
+              'ผู้ป่วยใหม่ลงทะเบียน',
+              `${name} (${gender}, ${age} ปี) ลงทะเบียนเข้าระบบ`,
+              newPatient.id
+            );
+            
             await replyMessage(event.replyToken, {
               type: 'text',
               text: `✅ สมัครสำเร็จแล้วค่ะ ขอบคุณคุณ ${name} ที่สมัครใช้งานระบบค่ะ 😊\n` +
@@ -299,6 +309,30 @@ exports.handleWebhook = async (req, res) => {
             systolicStatus,
           },
         });
+
+        // 🔔 สร้าง notification สำหรับค่าเสี่ยงสูง
+        if (bloodSugarStatus === 'เสี่ยงสูง' && systolicStatus === 'เสี่ยงสูง') {
+          await createNotification(
+            'high_risk',
+            '⚠️ ผู้ป่วยเสี่ยงสูงมาก',
+            `${patient.name} มีน้ำตาล ${bloodSugar} mg/dL และความดัน ${systolic}/${diastolic} mmHg`,
+            patient.id
+          );
+        } else if (bloodSugarStatus === 'เสี่ยงสูง') {
+          await createNotification(
+            'high_sugar',
+            '🩸 น้ำตาลเสี่ยงสูง',
+            `${patient.name} มีค่าน้ำตาล ${bloodSugar} mg/dL (${mealTime === 'before' ? 'ก่อนอาหาร' : 'หลังอาหาร'})`,
+            patient.id
+          );
+        } else if (systolicStatus === 'เสี่ยงสูง') {
+          await createNotification(
+            'high_pressure',
+            '💓 ความดันเสี่ยงสูง',
+            `${patient.name} มีค่าความดัน ${systolic}/${diastolic} mmHg`,
+            patient.id
+          );
+        }
 
         // กรณีค่าน้ำตาล
         if (sugarMatch) {

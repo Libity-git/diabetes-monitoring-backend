@@ -14,14 +14,15 @@ datasource db {
 // DIRECT_URL = สำหรับ migrations (port 5432)
 
 model Patient {
-  id          Int       @id @default(autoincrement())
-  name        String
-  gender      String
-  age         Int
-  phone       String     // ✅ เบอร์โทร
-  lineUserId  String     @unique
-  reports     Report[]
-  createdAt   DateTime   @default(now())
+  id            Int            @id @default(autoincrement())
+  name          String
+  gender        String
+  age           Int
+  phone         String         // ✅ เบอร์โทร
+  lineUserId    String         @unique
+  reports       Report[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now())
 }
 
 model Report {
@@ -44,4 +45,15 @@ model Admin {
   username     String    @unique
   passwordHash String
   createdAt    DateTime  @default(now())
+}
+
+model Notification {
+  id          Int       @id @default(autoincrement())
+  type        String    // "high_risk", "new_patient", "high_sugar", "high_pressure"
+  title       String
+  message     String
+  patientId   Int?
+  patient     Patient?  @relation(fields: [patientId], references: [id])
+  isRead      Boolean   @default(false)
+  createdAt   DateTime  @default(now())
 }
