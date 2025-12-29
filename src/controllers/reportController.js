@@ -183,3 +183,76 @@ exports.getAllReports = async (req, res) => {
     res.status(500).json({ error: 'ไม่สามารถดึงข้อมูลได้' });
   }
 };
+
+// ➕ Admin สร้างรายงานแทนผู้ป่วย (Option A)
+exports.createReportManual = async (req, res) => {
+  try {
+    const { 
+      patientId,
+      bloodSugar, 
+      mealTime, 
+      systolic, 
+      diastolic, 
+      pulse,
+      bloodSugarStatus,
+      systolicStatus 
+    } = req.body;
+
+    // ตรวจสอบว่ามีผู้ป่วยหรือไม่
+    const patient = await prisma.patient.findUnique({
+      where: { id: parseInt(patientId) }
+    });
+
+    if (!patient) {
+      return res.status(404).json({ error: 'ไม่พบผู้ป่วย' });
+    }
+
+    // Validation
+    if (!bloodSugar && !systolic) {
+      return res.status(400).json({ error: 'กรุณากรอกค่าน้ำตาลหรือความดันอย่างน้อย 1 อย่าง' });
+    }
+
+    // บันทึก report
+    const report = await prisma.report.create({
+      data: {
+        patientId: parseInt(patientId),
+        bloodSugar: bloodSugar ? parseFloat(bloodSugar) : null,
+        mealTime: mealTime || null,
+        systolic: systolic ? parseInt(systolic) : null,
+        diastolic: diastolic ? parseInt(diastolic) : null,
+        pulse: pulse ? parseInt(pulse) : null,
+        bloodSugarStatus: bloodSugarStatus || null,
+        systolicStatus: systolicStatus || null,
+      }
+    });
+
+    // สร้าง notification ถ้าค่าสูง
+    const { createNotification } = require('./notificationController');
+    
+    if (bloodSugarStatus === 'เสี่ยงสูง' || bloodSugarStatus === 'สูง') {
+      await createNotification(
+        'high_sugar',
+        'แจ้งเตือน: น้ำตาลสูง',
+        `${patient.name} มีค่าน้ำตาล ${bloodSugar} mg/dL (${bloodSugarStatus}) - กรอกโดยเจ้าหน้าที่`,
+        patient.id
+      );
+    }
+    
+    if (systolicStatus === 'เสี่ยงสูง' || systolicStatus === 'สูง') {
+      await createNotification(
+        'high_pressure',
+        'แจ้งเตือน: ความดันสูง',
+        `${patient.name} มีค่าความดัน ${systolic}/${diastolic} mmHg (${systolicStatus}) - กรอกโดยเจ้าหน้าที่`,
+        patient.id
+      );
+    }
+
+    res.status(201).json({
+      message: 'บันทึกข้อมูลสำเร็จ',
+      report
+    });
+  } catch (error) {
+    console.error('Error creating manual report:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
+  }
+};

@@ -52,6 +52,7 @@ const lineWebhookRoutes = require('./routes/lineWebhookRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const liffRoutes = require('./routes/liffRoutes');
+const caregiverRoutes = require('./routes/caregiverRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -62,5 +63,6 @@ app.use('/api/patients', require('./routes/patientRoutes'));
 app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/liff', liffRoutes);
+app.use('/api/caregiver', caregiverRoutes);
 
 module.exports = app;

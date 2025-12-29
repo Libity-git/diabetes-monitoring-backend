@@ -27,15 +27,58 @@ exports.getPatientById = async (req, res) => {
   }
 };
 
-// ➕ สร้างผู้ป่วยใหม่
+// ➕ สร้างผู้ป่วยใหม่ (Admin สามารถสร้างผู้ป่วยที่ไม่มี LINE ได้)
 exports.createPatient = async (req, res) => {
   const { name, gender, age, phone, lineUserId } = req.body;
+  
   try {
+    // Validation
+    if (!name || !gender || !age) {
+      return res.status(400).json({ error: 'กรุณากรอก ชื่อ เพศ และอายุ' });
+    }
+
+    // ตรวจสอบ lineUserId ซ้ำ (ถ้ามี)
+    if (lineUserId) {
+      const existingLine = await prisma.patient.findUnique({
+        where: { lineUserId }
+      });
+      if (existingLine) {
+        return res.status(400).json({ error: 'LINE User ID นี้มีในระบบแล้ว' });
+      }
+    }
+
+    // ตรวจสอบเบอร์โทรซ้ำ (ถ้ามี)
+    if (phone) {
+      const existingPhone = await prisma.patient.findFirst({
+        where: { phone }
+      });
+      if (existingPhone) {
+        return res.status(400).json({ error: 'เบอร์โทรศัพท์นี้มีในระบบแล้ว' });
+      }
+    }
+
     const patient = await prisma.patient.create({
-      data: { name, gender, age, phone, lineUserId },
+      data: { 
+        name, 
+        gender, 
+        age: parseInt(age), 
+        phone: phone || '', 
+        lineUserId: lineUserId || null // ✅ nullable สำหรับผู้ป่วยไม่มี LINE
+      },
     });
+
+    // สร้าง notification สำหรับผู้ป่วยใหม่
+    const { createNotification } = require('./notificationController');
+    await createNotification(
+      'new_patient',
+      'ผู้ป่วยใหม่ลงทะเบียน',
+      `${name} ${lineUserId ? '' : '(ไม่มี LINE)'} ลงทะเบียนโดยเจ้าหน้าที่`,
+      patient.id
+    );
+
     res.status(201).json(patient);
   } catch (err) {
+    console.error('Error creating patient:', err);
     res.status(500).json({ error: 'ไม่สามารถสร้างผู้ป่วยได้' });
   }
 };

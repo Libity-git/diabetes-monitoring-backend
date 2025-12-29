@@ -19,10 +19,21 @@ model Patient {
   gender        String
   age           Int
   phone         String         // ✅ เบอร์โทร
-  lineUserId    String         @unique
+  lineUserId    String?        @unique // ✅ nullable สำหรับผู้ป่วยที่ไม่มี LINE
   reports       Report[]
   notifications Notification[]
+  caregivers    Caregiver[]    @relation("PatientCaregivers")
   createdAt     DateTime       @default(now())
+}
+
+// 📌 Caregiver Model - สำหรับผู้ดูแล/ญาติที่ส่งข้อมูลแทนผู้ป่วย
+model Caregiver {
+  id            Int       @id @default(autoincrement())
+  lineUserId    String    @unique  // LINE User ID ของผู้ดูแล
+  name          String             // ชื่อผู้ดูแล
+  phone         String?            // เบอร์โทร
+  patients      Patient[] @relation("PatientCaregivers")
+  createdAt     DateTime  @default(now())
 }
 
 model Report {
